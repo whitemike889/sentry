@@ -721,6 +721,7 @@ class Fixtures(object):
             organization=organization,
             scopes=scopes,
             webhook_url=webhook_url,
+            events=[],
             **kwargs
         )
         if published:
