@@ -37,9 +37,7 @@ class VisualizationsToggle extends React.Component {
     const active = opt.id === this.props.visualization;
     return (
       <li key={opt.id} className={classNames({active})}>
-        <a onClick={() => this.props.handleChange(opt.id)}>
-          {opt.name}
-        </a>
+        <a onClick={() => this.props.handleChange(opt.id)}>{opt.name}</a>
       </li>
     );
   };

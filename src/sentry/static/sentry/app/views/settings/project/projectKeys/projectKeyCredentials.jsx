@@ -125,9 +125,7 @@ class ProjectKeyCredentials extends React.Component {
         {showUnreal && (
           <Field
             label={t('Unreal Engine 4 Endpoint')}
-            help={t(
-              'Use this endpoint to configure your UE4 Crash Reporter.',
-            )}
+            help={t('Use this endpoint to configure your UE4 Crash Reporter.')}
             inline={false}
             flexibleControlStateSize
           >
