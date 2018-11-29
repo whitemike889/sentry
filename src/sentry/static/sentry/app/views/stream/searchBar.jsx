@@ -66,6 +66,10 @@ const SearchBar = createReactClass({
     getQueryTerms(query, cursor) {
       return query.slice(0, cursor).match(/\S+:"[^"]*"?|\S+/g);
     },
+
+    isTermCompleted(term) {
+      return /\S+:(("[^"]*")|([^"]\S*))/.test(term);
+    },
   },
 
   getDefaultProps() {
@@ -281,7 +285,8 @@ const SearchBar = createReactClass({
       !terms || // no terms
       terms.length === 0 || // no terms
       (terms.length === 1 && terms[0] === this.props.defaultQuery) || // default term
-      /^\s+$/.test(query.slice(cursor - 1, cursor + 1))
+      (SearchBar.isTermCompleted(terms[terms.length - 1]) &&
+        /^\s+$/.test(query.slice(cursor - 1, cursor + 1))) // ends with space AND previous term is not finished (e.g. `browser:"Chr `)
     ) {
       // cursor on whitespace
       // show default "help" search terms
@@ -413,29 +418,29 @@ const SearchBar = createReactClass({
     let terms = SearchBar.getQueryTerms(query.slice(0, lastTermIndex));
     let newQuery;
 
-    // If not postfixed with : (tag value), add trailing space
-    replaceText += replaceText.charAt(replaceText.length - 1) === ':' ? '' : ' ';
+    // If not postfixed with : (tag value) and not empty, add trailing space
+    let lastChar = replaceText.charAt(replaceText.length - 1);
+    let newReplaceText = replaceText + (lastChar === ':' || lastChar === '' ? '' : ' ');
 
     if (!terms) {
-      newQuery = replaceText;
+      newQuery = newReplaceText;
     } else {
       let last = terms.pop();
 
       newQuery = query.slice(0, lastTermIndex); // get text preceding last term
 
-      if (/:(("[^"]+")|([^"]\S*))\s/.test(newQuery)) {
-        // Note: this breaks if you have nested quotes
-        newQuery = newQuery.concat(query.slice(lastTermIndex)) + replaceText;
+      // If last term is a finished term e.g. tag:value or tag:"value", then append new text
+      if (SearchBar.isTermCompleted(last)) {
+        newQuery = newQuery.concat(query.slice(lastTermIndex)) + newReplaceText;
       } else {
-        console.log(last);
         newQuery =
           last.indexOf(':') > -1
-            ? // tag key present: replace everything after colon with replaceText
-              newQuery.replace(/\:"[^"]*"?$|\:[^"]\S*$/, ':' + replaceText)
-            : // no tag key present: replace last token with replaceText
-              newQuery.replace(/\S+$/, replaceText);
+            ? // tag key present: replace everything after colon with newReplaceText
+              // newQuery.replace(/\:"[^"]*"?$|\:[^"]\S*$/, ':' + newReplaceText)
+              newQuery.replace(/\:"[^"]*"?$|\:\S*$/, ':' + newReplaceText)
+            : // no tag key present: replace last token with newReplaceText
+              newQuery.replace(/\S+$/, newReplaceText);
 
-        console.log(newQuery);
         newQuery = newQuery.concat(query.slice(lastTermIndex));
       }
     }
